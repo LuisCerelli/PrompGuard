@@ -7,3 +7,7 @@ azure-core
 
 # OpenAI en Azure
 azure-openai @ git+https://github.com/Azure/azure-sdk-for-python.git#subdirectory=sdk/openai/azure-openai
+
+# Por si no funciona Azure-openai
+openai
+azure-ai-ml

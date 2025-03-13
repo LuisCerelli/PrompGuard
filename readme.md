@@ -180,13 +180,140 @@ Antes de continuar con el desarrollo del backend, verificamos que **Azure Functi
 
 🚀 **Con esto, Azure Functions ya está listo para conectarse con OpenAI.**  
 
+
+## 🛠 **9️⃣ Implementación de los Endpoints en Azure Functions**  
+
+Después de configurar correctamente OpenAI en Azure, implementamos los endpoints para **validación de prompts** y **generación de respuestas** en nuestra función de Azure.  
+
+📌 **Endpoints creados:**  
+- `POST /api/validatePrompt` → Valida el contenido del prompt asegurando seguridad y claridad.  
+- `POST /api/generateResponse` → Genera respuestas usando **GPT-4** en Azure OpenAI.  
+
+### 📂 **Estructura del Proyecto**  
+
+Después de la implementación, nuestro proyecto tiene la siguiente estructura:  
+
+```bash
+myFunctionApp
+├── PromtGuard
+│   ├── bin/
+│   ├── include/
+│   ├── lib/
+│   └── pyvenv.cfg
+├── __pycache__/
+├── function_app.py
+├── function_app.zip
+├── generateResponse/
+│   ├── __init__.py
+│   └── function.json
+├── host.json
+├── local.settings.json
+├── readme.md
+├── requirements.txt
+└── validatePrompt/
+    ├── __init__.py
+    └── function.json
+```
+
 ---
 
-## 🎯 **Próximos Pasos**  
+## 🚀 **🔟 Ejecución de la API Localmente**  
 
-✅ **Implementar los endpoints `/api/validatePrompt` y `/api/generateResponse` en Azure Functions.**  
-✅ **Realizar pruebas iniciales para validar la comunicación con OpenAI.**  
-✅ **Optimizar el flujo de corrección de prompts antes de enviar las solicitudes a la IA.**  
+Una vez que todo está configurado, podemos **ejecutar la API localmente** usando **Azure Functions Core Tools**.  
+
+### ✅ **Pasos para Iniciar la API**  
+
+1️⃣ **Abrir la terminal y navegar al proyecto:**  
+```sh
+cd myFunctionApp
+```
+
+2️⃣ **Activar el entorno virtual:**  
+```sh
+source PromtGuard/bin/activate  # Mac/Linux
+```
+
+3️⃣ **Ejecutar Azure Functions:**  
+```sh
+func start
+```
+
+📌 **Ejemplo de salida esperada:**  
+```bash
+Azure Functions Core Tools
+Function Runtime Version: 4.1036.1.23224
+
+Functions:
+
+        generateResponse: [POST] http://localhost:7071/api/generateResponse
+        validatePrompt: [POST] http://localhost:7071/api/validatePrompt
+```
+
+Si ves estas rutas en la terminal, **las funciones están activas y listas para recibir solicitudes**. 🎉  
+
+---
+
+## 🧪 **1️⃣1️⃣ Pruebas de los Endpoints**  
+
+📌 Para probar que la API funciona correctamente, enviamos solicitudes con `curl` o Postman.  
+
+### 🔹 **Validación de Prompt** (`/api/validatePrompt`)  
+
+```sh
+curl -X POST "http://localhost:7071/api/validatePrompt" \
+     -H "Content-Type: application/json" \
+     -d '{"prompt": "Hola, ¿cómo estás?"}'
+```
+
+🔹 **Ejemplo de respuesta esperada:**  
+```json
+{
+  "correctedPrompt": "Hola, ¿cómo estás?",
+  "suggestions": ["Reformula la pregunta para mayor claridad."]
+}
+```
+
+---
+
+### 🔹 **Generación de Respuesta** (`/api/generateResponse`)  
+
+```sh
+curl -X POST "http://localhost:7071/api/generateResponse" \
+     -H "Content-Type: application/json" \
+     -d '{"prompt": "Escribe un resumen sobre el cambio climático."}'
+```
+
+🔹 **Ejemplo de respuesta esperada:**  
+```json
+{
+  "response": "El cambio climático es un fenómeno global causado por la emisión de gases de efecto invernadero..."
+}
+```
+
+---
+
+## 🚑 **1️⃣2️⃣ Solución de Problemas**  
+
+Si la API no responde o tienes errores, revisa lo siguiente:  
+
+❌ **Error:** `Worker failed to index functions`  
+🔹 **Solución:** Asegúrate de que `app` está correctamente definido en `function_app.py`.  
+
+❌ **Error:** `No job functions found`  
+🔹 **Solución:** Verifica que cada función tiene correctamente el decorador `@app.function_name()`.  
+
+❌ **Error 500 al llamar a OpenAI**  
+🔹 **Solución:** Revisa tu clave de OpenAI en `local.settings.json` y confirma que está activa.  
+
+---
+
+## 🎯 **1️⃣3️⃣ Próximos Pasos**  
+
+✅ **Mejorar la validación del contenido para reducir falsos positivos.**  
+✅ **Optimizar la integración con OpenAI para mejorar respuestas.**  
+✅ **Desplegar en Azure Function App y probar en producción.**  
+
+
 
 
 
