@@ -1,196 +1,108 @@
+## 📝 Proyecto: AI-Prompt-Validator  
 
+### 📌 **Objetivo del Proyecto**  
 
-# 1: Configurar Azure Functions en el entorno
+El objetivo de este proyecto es diseñar un **sistema que valide y corrija los prompts antes de enviarlos a la IA**. Esto ayuda a optimizar las respuestas generadas, asegurando que sean **claras, conformes y libres de riesgos potenciales** (por ejemplo, sesgo, lenguaje dañino o datos sensibles).  
 
-Lo primero que haremos es configurarlo, ya que Azure Functions es un servicio de computación sin servidor que permite ejecutar código en respuesta a eventos HTTP: 
+Para lograr esto, configuramos diferentes servicios en **Azure** y creamos una **arquitectura backend** basada en **Azure Functions** y **Azure OpenAI**.  
 
-#### Pasos: 
-1. Instalar Azure Functions Core Tools en tu máquina: 
-``` 
-npm install -g azure-functions-core-tools@4 --unsafe-perm true
+---
+
+## ⚙️ **Configuración Paso a Paso**  
+
+### 1️⃣ **Crear Azure Function App**  
+💡 **Función principal donde correrá nuestra validación.**  
+
+1. Ir al **Portal de Azure** [🔗 Azure Portal](https://portal.azure.com).  
+2. En la barra de búsqueda, escribir **Function App** ó **Aplicacion de Funcion** si está en español y hacer clic en **"Crear"**.  
+
+**Nota:** en caso que la barra de <u>Marketplace</u> no lo encuentre usar este link luego de loguearse:  
 ```
-2. Instalamos Azure CLI(Si es que no lo tienes)
-###### Para MacOS:
+https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/Microsoft.Web%2Fsites/kind/functionapp
 ```
-brew update && brew install azure-cli
-``` 
-3. Actualizamos (en caso de ser necesario)
+3. Configurar los siguientes valores:  
+   - **Suscripción:** Seleccionar la suscripción activa.  
+   - **Grupo de recursos:** **AI-Prompt-Validator-RG** (si no existe, crearlo).  
+   - **Nombre de la Function App:** **prompt-validator-function**.  
+   - **Región:** **East US 2**.  
+   - **Pila de tiempo de ejecución:** **Python 3.10**.  
+   - **Tamaño de instancia:** **2048 MB** (para optimizar costos).  
+4. En la pestaña **Monitoreo**, seleccionar:  
+   - **Habilitar Application Insights:** **Sí**.  
+   - **Application Insights Resource:** **prompt-validator-function-openai-b083** (creado automáticamente).  
+5. Hacer clic en **"Revisar y Crear"** → **"Crear"** y esperar la implementación.  
+
+---
+
+### 2️⃣ **Habilitar Azure OpenAI**  
+💡 **Este servicio procesará las correcciones y validaciones de los prompts.**  
+
+1. En el Portal de Azure, buscar **"Azure OpenAI"**.  
+2. Hacer clic en **"Habilitar Azure OpenAI"**.  
+3. Configurar los siguientes valores:  
+   - **Región:** **East US 2** (misma que Function App).  
+   - **Recurso creado:** **prompt-validator-function-openai-b083**.  
+   - **Almacenamiento vectorial:** Seleccionar **"Configurar más tarde"**.  
+4. Hacer clic en **"Revisar y Crear"** → **"Crear"** y esperar la implementación.  
+
+---
+
+### 3️⃣ **Configurar Azure Cognitive Services - Language Service**  
+💡 **Este servicio nos permitirá corregir la gramática y optimizar el texto.**  
+
+1. En el Portal de Azure, buscar **"Language Service"**.  
+2. Hacer clic en **"Crear"**.  
+3. Configurar los siguientes valores:  
+   - **Suscripción:** Seleccionar la suscripción activa.  
+   - **Grupo de recursos:** **AI-Prompt-Validator-RG**.  
+   - **Nombre del servicio:** **prompt-language-service**.  
+   - **Región:** **East US 2**.  
+   - **Plan de tarifa:** **S (Standard, 1K llamadas/minuto)**.  
+4. Hacer clic en **"Revisar y Crear"** → **"Crear"** y esperar la implementación.  
+
+---
+
+### 4️⃣ **Obtener las Claves y Endpoint de los Servicios**  
+💡 **Necesitamos estas credenciales para integrarlas en nuestro código.**  
+
+📌 **Para Azure OpenAI:**  
+1. Ir a **Azure OpenAI** → **prompt-validator-function-openai-b083**.  
+2. En el menú lateral, hacer clic en **"Keys and Endpoint"**.  
+3. Copiar:  
+   - **Endpoint:** `https://turecurso.openai.azure.com/`  
+   - **Key:** `tu-clave-de-openai`  
+
+📌 **Para Azure Cognitive Services - Language Service:**  
+1. Ir a **Language Service** → **prompt-language-service**.  
+2. En el menú lateral, hacer clic en **"Keys and Endpoint"**.  
+3. Copiar:  
+   - **Endpoint:** `https://turecurso.cognitiveservices.azure.com/`  
+   - **Key:** `tu-clave-de-cognitive-services`  
+
+---
+
+### 5️⃣ **Actualizar el archivo `local.settings.json` en Azure Functions**  
+💡 **Para que nuestra función use las credenciales correctas.**  
+
+1. Abrir el proyecto en **Visual Studio Code**.  
+2. Dentro de la carpeta de Azure Functions, localizar **`local.settings.json`**.  
+3. Reemplazar el contenido con las credenciales copiadas:  
+
+```json
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "OPENAI_ENDPOINT": "https://turecurso.openai.azure.com/",
+    "OPENAI_KEY": "tu-clave-de-openai",
+    "COGNITIVE_SERVICES_ENDPOINT": "https://turecurso.cognitiveservices.azure.com/",
+    "COGNITIVE_SERVICES_KEY": "tu-clave-de-cognitive-services"
+  }
+}
 ```
-brew upgrade
-```
-4. Verificamos que esté instalado correctamente:
-```
-az --version
-```
-5. Iniciamos sesión en Azure:
-```
-az login
-```
-6. Crear un nuevo proyecto ede Azure Functions:
-```
-func init myFunctionApp --worker-runtime python  # O usa "node" si prefieres JavaScript/TypeScript
-cd myFunctionApp
-```
-7. Crear los endpoints requeridos:
-```
-func new --name validatePrompt --template "HTTP trigger"  
-func new --name generateResponse --template "HTTP trigger"  
-func new --name monitoring --template "HTTP trigger"  
-```
-###### <u> Nota:</u>
-Cuando llegamos a este punto, se necesita seleccionar el nivel de autenticación adecuado para los endpoints, las opciones son: 
+### 🔜 **Próximos Pasos**  
+✅ Integrar **Azure Cognitive Services - Language Service** con **Azure Functions**.  
+✅ Implementar los endpoints `/api/validatePrompt` y `/api/generateResponse`.  
+✅ Hacer pruebas iniciales para validar el flujo completo.  
 
-a. FUNCTION: Requiere una clave de función específica para invocar la función. Es bueno para APIs internas o servicios que necesitan un nivel moderado de seguridad.
-
-b. ANONYMOUS: No requiere autenticación. Cualquiera puede llamar a tu función sin proporcionar una clave. Útil para APIs públicas o pruebas.
-
-c. ADMIN: Requiere la clave maestra (master key) para invocar la función. Es el nivel más restrictivo, ideal para funciones administrativas o críticas.
-
-Dada las características del Hackathon en el que participaremos todos y demás miembros y entendiendo el fin didáctico al momento de realizarce, entiendo que colocaremos la opción b: Anonymous, de tal forma que podamos realizar pruebas tranquilamente
-
-# 2: Implementar ```validatePrompt``` con Azure Cognitive Services
-Este endpoint recibe un prompt, valida su gramática y sugiere mejoras.
-
-#### Pasos:
-Configurar Azure Cognitive Services (Language API):
-
-1. Ir a Azure Portal.
-2. Crear un recurso de Azure Cognitive Services.
-3. Seleccionar la opción de Language Services.
-4. Copiar la clave de API y la URL del endpoint.
-Editar ```validatePrompt/__init__.py``` y agrega la validación de gramática:
-
-```
-import logging
-import json
-import azure.functions as func
-import requests
-
-# Configuración de Azure Cognitive Services
-AZURE_LANGUAGE_ENDPOINT = "TU_ENDPOINT"
-AZURE_LANGUAGE_KEY = "TU_API_KEY"
-
-def validate_grammar(text):
-    """Llama a Azure Cognitive Services para validar gramática."""
-    headers = {
-        "Ocp-Apim-Subscription-Key": AZURE_LANGUAGE_KEY,
-        "Content-Type": "application/json"
-    }
-    data = {"documents": [{"id": "1", "text": text}]}
-    response = requests.post(f"{AZURE_LANGUAGE_ENDPOINT}/text/analytics/v3.1/spellCheck", headers=headers, json=data)
-    return response.json()
-
-def main(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info("Validando prompt...")
-
-    try:
-        req_body = req.get_json()
-        prompt = req_body.get("prompt")
-
-        if not prompt:
-            return func.HttpResponse("Falta el prompt.", status_code=400)
-
-        correction = validate_grammar(prompt)
-        corrected_text = correction["documents"][0]["suggestions"][0]["suggestedText"]  # Extrae la corrección
-
-        response_data = {
-            "correctedPrompt": corrected_text,
-            "suggestions": correction["documents"][0]["suggestions"]
-        }
-
-        return func.HttpResponse(json.dumps(response_data), mimetype="application/json")
-    except Exception as e:
-        logging.error(f"Error en validatePrompt: {str(e)}")
-        return func.HttpResponse("Error interno del servidor.", status_code=500)
-```
-
-# 3: Implementar ```generateRespons``` con Azure OpenAI
-Este endpoint toma el **prompt corregido** y lo envía a **Azure OpenAI** para generar una respuesta.
-
-#### **Pasos:**
-1. Configura Azure OpenAI en el portal de Azure.
-
-    Crea un recurso de Azure OpenAI.
-    Obtén la clave API y el endpoint.
-    Asegúrate de habilitar el modelo GPT que usarás.
-    Edita ```generateResponse/__init__.py``` para conectarlo con OpenAI:
-
-```
-import logging
-import json
-import azure.functions as func
-import openai
-
-# Configuración de Azure OpenAI
-OPENAI_API_KEY = "TU_OPENAI_API_KEY"
-OPENAI_ENDPOINT = "TU_OPENAI_ENDPOINT"
-
-openai.api_key = OPENAI_API_KEY
-
-def generate_ai_response(prompt):
-    """Llama a Azure OpenAI para generar una respuesta."""
-    response = openai.ChatCompletion.create(
-        engine="gpt-4",  # Usa el modelo configurado en Azure
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=100
-    )
-    return response["choices"][0]["message"]["content"]
-
-def main(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info("Generando respuesta de IA...")
-
-    try:
-        req_body = req.get_json()
-        corrected_prompt = req_body.get("prompt")
-
-        if not corrected_prompt:
-            return func.HttpResponse("Falta el prompt corregido.", status_code=400)
-
-        response_text = generate_ai_response(corrected_prompt)
-
-        return func.HttpResponse(json.dumps({"response": response_text}), mimetype="application/json")
-    except Exception as e:
-        logging.error(f"Error en generateResponse: {str(e)}")
-        return func.HttpResponse("Error interno del servidor.", status_code=500)
-```
-# 4: Implementar ```monitoring``` para medir rendimiento
-Este endpoint devuelve métricas como latencia y precisión.
-
-#### **Pasos:**
-1. Edita ```monitoring/__init__.py```: 
-```
-import logging
-import json
-import azure.functions as func
-import time
-
-def main(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info("Recopilando métricas de IA...")
-
-    # Simulación de métricas
-    metrics = {
-        "latency": "120ms",
-        "accuracy": "95%",
-        "issuesDetected": "3"
-    }
-
-    return func.HttpResponse(json.dumps({"metrics": metrics}), mimetype="application/json")
-```
-# 5: Desplegar en Azure
-Una vez que todo esté funcionando localmente, desplegar las funciones en Azure.
-
-1. Inicia sesión en Azure:
-```
-az login
-```
-2. Crea un grupo de recursos y un Function App:
-```
-az group create --name MyResourceGroup --location "East US"
-az functionapp create --resource-group MyResourceGroup --consumption-plan-location "East US" --runtime python --functions-version 4 --name MyFunctionApp --storage-account mystorageaccount
-```
-3. Desplegar el código:
-```
-func azure functionapp publish MyFunctionApp
-```
-
-### Con ésto hemos configurado el backend con Azure Functions, validación de prompts, integración con Azure Cognitive Services y OpenAI, y un sistema de monitoreo.
