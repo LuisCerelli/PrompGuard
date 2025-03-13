@@ -1,7 +1,9 @@
-# Dependencias para las Azure Functions
+# Dependencias para Azure Functions
 azure-functions
 azure-identity
 azure-ai-textanalytics
-azure-ai-openai
 azure-ai-contentsafety
 azure-core
+
+# OpenAI en Azure
+azure-openai @ git+https://github.com/Azure/azure-sdk-for-python.git#subdirectory=sdk/openai/azure-openai
