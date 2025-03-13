@@ -92,12 +92,10 @@ https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/Microso
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "python",
-    "OPENAI_ENDPOINT": "https://turecurso.openai.azure.com/",
-    "OPENAI_KEY": "tu-clave-de-openai",
-    "COGNITIVE_SERVICES_ENDPOINT": "https://turecurso.cognitiveservices.azure.com/",
-    "COGNITIVE_SERVICES_KEY": "tu-clave-de-cognitive-services"
+   ...
+    "CONTENT_SAFETY_ENDPOINT": "https://turecurso.cognitiveservices.azure.com/",
+    "CONTENT_SAFETY_KEY": "tu-clave-de-content-safety"
+   ...
   }
 }
 ```
@@ -159,14 +157,12 @@ Ahora, actualizamos **Azure Functions** para conectar correctamente OpenAI con n
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "python",
-    "OPENAI_ENDPOINT": "https://turecurso.openai.azure.com/",
-    "OPENAI_KEY": "tu-clave-de-openai",
+   ...
+    "OPENAI_ENDPOINT": "https://turecurso.openai.azure.com/",#-> Aquí colocamos el Endpoint
+    "OPENAI_KEY": "tu-clave-de-openai",#-> Aquí colocamos la KEY 1
     "OPENAI_CORRECTOR_DEPLOYMENT": "corrector-deployment",
     "OPENAI_RESPUESTA_DEPLOYMENT": "respuesta-deployment",
-    "COGNITIVE_SERVICES_ENDPOINT": "https://turecurso.cognitiveservices.azure.com/",
-    "COGNITIVE_SERVICES_KEY": "tu-clave-de-cognitive-services"
+   ...
   }
 }
 ```
