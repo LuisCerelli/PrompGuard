@@ -6,8 +6,8 @@
 - Jimena Fioni - PM (Estrategia)
 - Edgar Camilo Guerrero  - PM (Desarrollo)
 - Cristian Paez - Frontend Developer
-- Henry Suarez (darkhasl) - Backend Infrastructure 
-- Luis Cerelli - Azure Cloud Infrastructure
+- Henry Suarez (darkhasl) -  Azure Cloud Infrastructure
+- Luis Cerelli - Backend Infrastructure 
 
 
 ## 📋 Proceso de Contribución
